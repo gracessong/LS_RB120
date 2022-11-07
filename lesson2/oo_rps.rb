@@ -49,7 +49,7 @@ class Computer < Player
     'scissorsloving' => 'Hal',
     'spockloving' => 'Chappie',
     'paperloving' => 'Sonny',
-    'lizardloving' => 'Number 5',
+    'lizardloving' => 'Number 5'
   }
 
   LIKELY_MOVES = {
@@ -57,7 +57,7 @@ class Computer < Player
     'scissorsloving' => ['scissors', 'scissors', 'scissors', 'rock'],
     'spockloving' => ['spock', 'spock', 'spock', 'lizard'],
     'paperloving' => ['paper', 'paper', 'paper', 'spock'],
-    'lizardloving' => ['lizard', 'lizard', 'rock', 'scissors']
+    'lizardloving' => ['lizard', 'lizard', 'lizard', 'scissors']
   }
 
   def initialize
@@ -71,7 +71,7 @@ class Computer < Player
   end
 
   def choose
-    personality = Computer::PERSONALITIES.key(self.name)
+    personality = Computer::PERSONALITIES.key(name)
     choice = Computer::LIKELY_MOVES[personality].sample
     record << choice
     self.move = Move.new(choice)
@@ -85,14 +85,14 @@ class Move
     case value
     when 'rock' then @value = Rock.new
     when 'paper' then @value = Paper.new
-    when 'scissors' then @value= Scissors.new
+    when 'scissors' then @value = Scissors.new
     when 'spock' then @value = Spock.new
     when 'lizard' then @value = Lizard.new
     end
   end
 
   def to_s
-    self.value.class.to_s
+    value.class.to_s
   end
 end
 
@@ -114,7 +114,7 @@ class Paper
   end
 end
 
-class Spock 
+class Spock
   def beats?(other_move)
     other_move.value.class == Scissors || other_move.value.class == Rock
   end
@@ -139,6 +139,7 @@ class RPSGame
   def display_welcome_message
     puts "Hello, #{human.name}!"
     puts "Welcome to Rock, Paper, Scissors, Spock, and Lizard!"
+    puts "Your opponent is #{computer.name}."
     puts "The first one to reach a score of 10 is the grand winner."
   end
 
@@ -152,24 +153,35 @@ class RPSGame
   end
 
   def display_winner
-    if human.move.value.beats?(computer.move)
-      puts "#{human.name} won!"
-      human.score += 1
-    elsif computer.move.value.beats?(human.move)
-      puts "#{computer.name} won!"
-      computer.score += 1
-    else
+    if who_is_winner.nil?
       puts "It's a tie!"
+    else
+      puts "The winner is #{who_is_winner}!"
+    end
+  end
+
+  def who_is_winner
+    if human.move.value.beats?(computer.move)
+      human.name
+    elsif computer.move.value.beats?(human.move)
+      computer.name
+    end
+  end
+
+  def update_score
+    case who_is_winner
+    when human.name then human.score += 1
+    when computer.name then computer.score += 1
     end
   end
 
   def winner?
     human.score == 10 || computer.score == 10
-  end 
+  end
 
   def display_score
     msg = "#{human.name} #{human.score} : #{computer.score} #{computer.name}"
-    divider = "#{"*" * (msg.size + 2)}"
+    divider = ('*' * (msg.size + 2)).to_s
     puts divider
     puts msg.center(divider.size)
     puts divider
@@ -179,16 +191,23 @@ class RPSGame
     rounds = human.record.size
     msg = "#{human.name} played #{rounds} rounds against #{computer.name}:"
     length = msg.size + 2
-    puts "#{"*" * length}"
+    divider = ('*' * length).to_s
+    puts divider
     puts msg
+    display_past_moves
+    puts divider
+  end
+
+  def display_past_moves
+    rounds = human.record.size
     0.upto(rounds - 1) do |index|
-      puts "#{human.record[index]} vs. #{computer.record[index]}".center(length)
+      puts "#{human.record[index]} vs. #{computer.record[index]}"
     end
-    puts "#{"*" * length}"
-  end 
+  end
 
   def display_final_winner
-    human.score == 10 ? final_winner = human.name : final_winner = computer.name
+    final_winner = human.name if human.score == 10
+    final_winner = computer.name if computer.score == 10
     puts "The grand victory goes to...#{final_winner}!!"
   end
 
@@ -226,24 +245,37 @@ class RPSGame
     computer.record = []
   end
 
-  def play
-    system("clear")
-    display_welcome_message
+  def round
+    human.choose
+    computer.choose
+    display_moves
+    display_winner
+    update_score
+    display_score
+  end
+
+  def end_of_game_display
+    display_move_history if winner?
+    display_final_winner if winner?
+  end
+
+  def main_game
     loop do
       loop do
-        human.choose
-        computer.choose
-        display_moves
-        display_winner
-        display_score
+        round
         break if winner?
         break unless continue?
         system("clear")
       end
-        display_move_history if winner?
-        display_final_winner if winner?
-        break unless play_again?
+      end_of_game_display
+      break unless play_again?
     end
+  end
+
+  def play
+    system("clear")
+    display_welcome_message
+    main_game
     display_goodbye_message
   end
 end
