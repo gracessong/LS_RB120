@@ -90,37 +90,41 @@ class Move
   end
 
   def to_s
-    value.class.to_s
+    info.to_s
+  end
+
+  def info
+    value.class
   end
 end
 
 class Rock
   def beats?(other_move)
-    other_move.value.class == Scissors || other_move.value.class == Lizard
+    other_move.info == Scissors || other_move.info == Lizard
   end
 end
 
 class Scissors
   def beats?(other_move)
-    other_move.value.class == Paper || other_move.value.class == Lizard
+    other_move.info == Paper || other_move.info == Lizard
   end
 end
 
 class Paper
   def beats?(other_move)
-    other_move.value.class == Rock || other_move.value.class == Spock
+    other_move.info == Rock || other_move.info == Spock
   end
 end
 
 class Spock
   def beats?(other_move)
-    other_move.value.class == Scissors || other_move.value.class == Rock
+    other_move.info == Scissors || other_move.info == Rock
   end
 end
 
 class Lizard
   def beats?(other_move)
-    other_move.value.class == Paper || other_move.value.class == Spock
+    other_move.info == Paper || other_move.info == Spock
   end
 end
 
